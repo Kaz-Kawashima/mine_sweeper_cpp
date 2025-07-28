@@ -1,8 +1,6 @@
 #pragma once
 #include <string>
 
-constexpr int NOT_INITIALIZED = -1;
-
 enum class OpenResult
 {
 	Safe,

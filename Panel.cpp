@@ -1,5 +1,7 @@
 #include "Panel.h"
 
+constexpr int NOT_INITIALIZED = -1;
+
 void Panel::flag() {
 	if (is_flagged_) {
 		is_flagged_ = false;
@@ -26,7 +28,7 @@ BlankPanel::BlankPanel()
 {
 	is_open_ = false;
 	is_flagged_ = false;
-	bomb_value_ = -1;
+	bomb_value_ = NOT_INITIALIZED;
 };
 
 OpenResult BlankPanel::open() {
@@ -39,7 +41,7 @@ int BlankPanel::getBombValue() {
 }
 	
 void BlankPanel::setBombValue(int value) {
-	if (bomb_value_ < 0 && value >=  0) {
+	if (bomb_value_ == NOT_INITIALIZED && value >=  0) {
 		bomb_value_ = value;
 	}
 }
