@@ -98,5 +98,5 @@ OpenResult BorderPanel::open(){
 
 
 std::string BorderPanel::to_string() {
-	return "#";
+	return "=";
 }
