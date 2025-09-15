@@ -4,6 +4,14 @@
 #include <vector>
 using namespace std;
 
+enum class GameState {
+	Uninitialized,
+	Playing,
+	Win,
+	Lose,
+	Quit
+};
+
 class GameBoard
 {
 public:
@@ -18,13 +26,15 @@ private:
 	int num_bomb_;
 	int cursor_row_;
 	int cursor_col_;
+	GameState state_;
+	
 	void initField();
 	void setBomb();
 	void calcFieldBombValue();
 	int calcPanelBombValue(int y, int x);
 	std::string to_string();
-	bool is_finished();
-	OpenResult cascade_open(int y, int x);
+	GameState getGameState();
+	GameState cascade_open(int y, int x);
 	int count_flag();
 };
 

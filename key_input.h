@@ -13,5 +13,6 @@ enum class Key
 
 
 Key get_key();
+void hit_any_key();
 
 

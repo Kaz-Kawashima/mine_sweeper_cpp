@@ -33,3 +33,7 @@ Key get_key() {
         }
     } while (!finished);
 }
+
+void hit_any_key() {
+    _getch();
+}

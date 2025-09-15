@@ -24,8 +24,7 @@ GameBoard::GameBoard(int num_row, int num_col, int num_bomb) {
 	cursor_col_ = 1;
 
 	initField();
-	setBomb();
-	calcFieldBombValue();
+	state_ = GameState::Uninitialized;
 }
 
 void GameBoard::initField() {
@@ -59,12 +58,17 @@ void GameBoard::setBomb() {
 	while (bomb_counter < num_bomb_) {
 		int row = distribution_y(gen);
 		int col = distribution_x(gen);
+		if (row == cursor_row_ && col == cursor_col_) {
+			continue;
+		}
 		if (!instance_of<BombPanel>(field_[row][col]))
 		{
 			field_[row][col] = new BombPanel();
 			bomb_counter++;
 		}
 	}
+	calcFieldBombValue();
+	state_ = GameState::Playing;
 }
 
 void GameBoard::calcFieldBombValue() {
@@ -126,35 +130,45 @@ std::string GameBoard::to_string() {
 	return output;
 }
 
-bool GameBoard::is_finished() {
-	for (int row = 1; row <= size_y_; row++) {
-		for (int col = 1; col <= size_x_; col++) {
-			auto panel = field_[row][col];
-			if (instance_of<BlankPanel>(panel)) {
-				if (!panel->isOpen()) {
-					return false;
-				}
+GameState GameBoard::getGameState() {
+	if (state_ == GameState::Uninitialized) {
+		return state_;
+	}
+	state_ = GameState::Win;
+	for (auto panel_row: field_) {
+		for (auto p : panel_row) {
+			if (p->isOpen() && instance_of<BombPanel>(p)) {
+				state_ = GameState::Lose;
+				return state_;
+			}
+			if (!p->isOpen() && instance_of<BlankPanel>(p)) {
+				state_ = GameState::Playing;
 			}
 		}
 	}
-	return true;
+	return state_;
 }
 
-OpenResult GameBoard::cascade_open(int y, int x) {
-	auto result = OpenResult::Safe;
-	if (field_[y][x]->isOpen()) {
-		return result;
+
+GameState GameBoard::cascade_open(int y, int x) {
+	if (state_ == GameState::Uninitialized) {
+		setBomb();
 	}
-	result = field_[y][x]->open();
+	if (field_[y][x]->isOpen()) {
+		return state_;
+	}
+	auto result = field_[y][x]->open();
 	if (result == OpenResult::Explosion) {
-		return result;
+		getGameState();
+		return state_;
 	}
 	if (!instance_of<BlankPanel>(field_[y][x])) {
-		return result;
+		return state_;
 	}
 	auto p = dynamic_cast<BlankPanel*>(field_[y][x]);
 	if (p->getBombValue() > 0) {
-		return result;
+		getGameState();
+		return state_;
 	}
 	cascade_open(y - 1, x - 1);
 	cascade_open(y - 1, x);
@@ -164,7 +178,8 @@ OpenResult GameBoard::cascade_open(int y, int x) {
 	cascade_open(y + 1, x - 1);
 	cascade_open(y + 1, x);
 	cascade_open(y + 1, x + 1);
-	return result;
+	getGameState();
+	return state_;
 }
 
 int GameBoard::count_flag() {
@@ -180,9 +195,8 @@ int GameBoard::count_flag() {
 }
 
 void GameBoard::cui_game() {
-	auto result = OpenResult::Safe;
-	bool finished = false;
-	while (!finished) {
+	while (state_ == GameState::Uninitialized 
+		|| state_ == GameState::Playing) {
 		int num_flag = this->count_flag();
 		system("cls");
 		cout << this->to_string();
@@ -214,33 +228,31 @@ void GameBoard::cui_game() {
 			}
 			break;
 		case Key::open:
-			result = cascade_open(cursor_row_, cursor_col_);
-			if (result == OpenResult::Safe) {
-				if (this->is_finished()) {
-					cursor_col_ = -1;
-					cursor_row_ = -1;
-					system("cls");
-					cout << this->to_string() << endl;
-					cout << endl << "you win!" << endl;
-					finished = true;
-				}
-			}
-			else {
-				cursor_col_ = -1;
-				cursor_row_ = -1;
-				system("cls");
-				cout << this->to_string() << endl;
-				cout << endl << "Game over!" << endl;
-				finished = true;
-			}
+			cascade_open(cursor_row_, cursor_col_);
 			break;
 		case Key::flag:
 			field_[cursor_row_][cursor_col_]->flag();
 			break;
 		case Key::quit:
-			cout << endl << "quit games" << endl;
-			finished = true;
+			state_ = GameState::Quit;
 			break;
 		}
 	}
+	cursor_col_ = -1;
+	cursor_row_ = -1;
+	system("cls");
+	cout << this->to_string() << endl;
+	switch(state_){
+	case GameState::Win:
+		cout << endl << "you win!" << endl;
+		break;
+	case GameState::Lose:
+		cout << endl << "Game over!" << endl;
+		break;
+	case GameState::Quit:
+		cout << endl << "quit games" << endl;
+		break;
+	}
+	cout << endl << "hit any key" << endl;
+	hit_any_key();
 }
