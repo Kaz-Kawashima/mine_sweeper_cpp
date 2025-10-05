@@ -36,7 +36,7 @@ private:
 class BombPanel : public Panel 
 {
 public:
-	BombPanel();
+	BombPanel(bool flag);
 	OpenResult open();
 	std::string to_string();
 	bool isBomb();

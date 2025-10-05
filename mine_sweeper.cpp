@@ -63,7 +63,9 @@ void GameBoard::setBomb() {
 		}
 		if (!instance_of<BombPanel>(field_[row][col]))
 		{
-			field_[row][col] = new BombPanel();
+			// keep flag status
+			bool flag = field_[row][col]->isFlagged();
+			field_[row][col] = new BombPanel(flag);
 			bomb_counter++;
 		}
 	}
@@ -154,7 +156,7 @@ GameState GameBoard::cascade_open(int y, int x) {
 	if (state_ == GameState::Uninitialized) {
 		setBomb();
 	}
-	if (field_[y][x]->isOpen()) {
+	if (field_[y][x]->isOpen() || field_[y][x]->isFlagged()) {
 		return state_;
 	}
 	auto result = field_[y][x]->open();

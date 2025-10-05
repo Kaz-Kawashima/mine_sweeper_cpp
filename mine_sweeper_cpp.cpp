@@ -7,6 +7,6 @@
 int main()
 {
     std::cout << "Hello World!\n";
-    auto gb = GameBoard(4, 4, 2);
+    auto gb = GameBoard(9, 9, 10);
     gb.cui_game();
 }

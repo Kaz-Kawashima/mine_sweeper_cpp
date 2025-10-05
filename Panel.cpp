@@ -63,9 +63,9 @@ std::string BlankPanel::to_string() {
 	}
 }
 
-BombPanel::BombPanel() {
+BombPanel::BombPanel(bool flag) {
 	is_open_ = false;
-	is_flagged_ = false;
+	is_flagged_ = flag;
 }
 
 OpenResult BombPanel::open() {
